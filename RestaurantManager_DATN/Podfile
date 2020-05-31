@@ -7,5 +7,10 @@ target 'RestaurantManager_DATN' do
 
   # Pods for RestaurantManager_DATN
 	pod 'Firebase/Analytics'
-	pod 'Firebase/Auth'	
+	pod 'Firebase/Auth'
+	pod 'Firebase/Firestore'
+	pod 'Firebase/Core'
+  pod 'FirebaseStorage'
+	pod 'ObjectMapper'
+  pod 'Kingfisher'
 end

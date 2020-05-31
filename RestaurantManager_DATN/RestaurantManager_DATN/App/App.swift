@@ -26,17 +26,17 @@ final class App: UINavigationController {
     }
     
     func transitionToLoginView() {
+        let vc = UIStoryboard.main.LoginNavigationViewController
         do {
             try Auth.auth().signOut()
+            changeView(vc)
         } catch {
             print("Error signing out: \(error.localizedDescription)")
         }
-        let vc = UIStoryboard.main.LoginNavigationViewController
-        changeView(vc)
     }
     
     func transitionToTableView() {
-        let vc = UIStoryboard.main.HomeNavigationViewController
+        let vc = UIStoryboard.main.MainNavigationViewController
         changeView(vc)
     }
     

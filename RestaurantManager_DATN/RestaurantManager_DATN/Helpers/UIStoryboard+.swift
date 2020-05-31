@@ -23,9 +23,9 @@ extension UIStoryboard {
         return vc
     }
     
-    var HomeNavigationViewController: HomeNavigationViewController {
-        guard let vc = UIStoryboard.main.instantiateViewController(withIdentifier: "HomeNavigationViewController") as? HomeNavigationViewController else {
-            fatalError("HomeNavigationViewController couldn't be found in Storyboard file")
+    var MainNavigationViewController: MainNavigationViewController {
+        guard let vc = UIStoryboard.main.instantiateViewController(withIdentifier: "MainNavigationViewController") as? MainNavigationViewController else {
+            fatalError("MainNavigationViewController couldn't be found in Storyboard file")
         }
         return vc
     }
