@@ -20,19 +20,22 @@ class RestaurantViewController: UIViewController {
     
     private var tableSearchController: UISearchController = {
         let searchController = UISearchController(searchResultsController: nil)
-        searchController.searchBar.placeholder = "Tìm Bàn"
+        searchController.searchBar.placeholder = "Tìm Bàn..."
         searchController.hidesNavigationBarDuringPresentation = true
+//        searchController.searchResultsUpdater = self
         return searchController
     } ()
     
     private struct collectionViewProperties {
         static let cellNibName = "TableCollectionViewCell"
         static let cellID = "TableCellID"
-        static let cellHeight: CGFloat = 80.0
-        static let numberOfCellsForRow: CGFloat = 2.0
+        static let cellHeight: CGFloat = 250.0
+        static let numberOfCellsForRow: CGFloat = 3.0
     }
     
     var tableData: [BanAn] = []
+    var currentTableData: [BanAn] = []
+    
     var currentBillData: [HoaDon] = []
     
     deinit {
@@ -49,7 +52,11 @@ class RestaurantViewController: UIViewController {
     }
     
     private func setupViews() {
+//        tableSearchController.delegate = self
+        tableSearchController.searchResultsUpdater = self
+        tableSearchController.obscuresBackgroundDuringPresentation = false
         navigationItem.searchController = tableSearchController
+        
         navigationItem.hidesSearchBarWhenScrolling = false
         
         tableCollectionView.refreshControl = tableRefreshControl
@@ -59,17 +66,23 @@ class RestaurantViewController: UIViewController {
         tableCollectionView.register(UINib(nibName: collectionViewProperties.cellNibName, bundle: nil), forCellWithReuseIdentifier: collectionViewProperties.cellID)
     }
     
-    @objc
-    private func fetchData() {
+    @objc func fetchData() {
         self.navigationController?.navigationBar.prefersLargeTitles = false
         
-        BanAn.fetchAllData { [weak self] (data, error) in
+        var isTableLoaded = false
+        var isBillLoaded = false
+        
+        BanAn.fetchAllDataAvailable { [weak self] (data, error) in
             if error != nil {
                 print(error.debugDescription)
             } else if let data = data {
                 self?.tableData = data
             }
-            self?.setupData()
+            isTableLoaded = true
+            if isBillLoaded {
+                self?.setupData()
+            }
+            
         }
         
         HoaDon.fetchUnpaidBill { [weak self] (data, error) in
@@ -78,7 +91,10 @@ class RestaurantViewController: UIViewController {
             } else if let data = data {
                 self?.currentBillData = data
             }
-            self?.setupData()
+            isBillLoaded = true
+            if isTableLoaded {
+                self?.setupData()
+            }
         }
         
 //        self.navigationController?.navigationBar.prefersLargeTitles = false
@@ -91,12 +107,24 @@ class RestaurantViewController: UIViewController {
     
     func setupData() {
 //        userProfileNameLabel.text = "\(String(restaurantStaff.first_name)) \(String(restaurantStaff.last_name))"
+        tableRefreshControl.endRefreshing()
+        
+        for (index, table)in tableData.enumerated() {
+            for bill in currentBillData {
+                if bill.idbanan == table.idbanan {
+                    tableData[index].bill = bill
+                }
+            }
+        }
+        currentTableData = tableData
         self.tableCollectionView.reloadData()
 //        self.hideActivityIndicatorView()
     }
     
-    @IBAction func takeawayButtonTapped(_ sender: Any) {
+    @IBAction func billHistoryButtonTapped(_ sender: Any) {
 //        self.performSegue(withIdentifier: segueProperties.toTakeawayVCSegue.rawValue, sender: self)
+        let presenter = PresentHandler()
+        presenter.presentBillHistoryVC(self)
     }
     
 
@@ -105,20 +133,23 @@ class RestaurantViewController: UIViewController {
 extension RestaurantViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return tableData.count
+        return currentTableData.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: collectionViewProperties.cellID, for: indexPath) as? TableCollectionViewCell else {
             fatalError("RestaurantViewController: Can't deque for tableCollectionViewCell")
         }
-        cell.configView(data: tableData[indexPath.item])
-        for bill in currentBillData {
-            if bill.idbanan == tableData[indexPath.item].idbanan {
+        if let bill = currentTableData[indexPath.item].bill, let served = bill.isBillServed(){
+            if served {
                 cell.state = .inUsed
-                break
+            } else {
+                cell.state = .waiting
             }
+        } else {
+            cell.state = .empty
         }
+        cell.configView(data: currentTableData[indexPath.item])
         return cell
     }
     
@@ -133,12 +164,17 @@ extension RestaurantViewController: UICollectionViewDelegateFlowLayout {
         
         
         let tableCellWidth = ((collectionView.frame.size.width - leftAndRightSectionInset - minimumInteritemSpacing * (collectionViewProperties.numberOfCellsForRow - 1.0))/collectionViewProperties.numberOfCellsForRow).rounded(.towardZero)
-        return CGSize(width: tableCellWidth, height: collectionViewProperties.cellHeight)
+        return CGSize(width: tableCellWidth, height: UIScreen.main.bounds.height/6)
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let presentHandler = PresentHandler()
-        presentHandler.presentMakeOrderVC(self)
+        guard let cell = collectionView.cellForItem(at: indexPath) as? TableCollectionViewCell else { return }
+        if cell.state == .empty {
+            presentHandler.presentMakeOrderVC(self, tableData: currentTableData[indexPath.item])
+        } else {
+            presentHandler.presentTableBillDetailVC(self, table: currentTableData[indexPath.item])
+        }
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -148,5 +184,23 @@ extension RestaurantViewController: UICollectionViewDelegateFlowLayout {
         } else if yTranslation <= -50 {
             navigationController?.setNavigationBarHidden(true, animated: true)
         }
+    }
+}
+
+extension RestaurantViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        guard var text = searchController.searchBar.text else { return }
+        if let range = text.lowercased().range(of: "bàn") {
+            text.removeSubrange(range)
+        } else if let  range = text.lowercased().range(of: "ban") {
+            text.removeSubrange(range)
+        }
+        text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.isEmpty == false {
+            currentTableData = tableData.filter { $0.sobanan?.range(of: text) != nil}
+        } else {
+            currentTableData = tableData
+        }
+        tableCollectionView.reloadData()
     }
 }

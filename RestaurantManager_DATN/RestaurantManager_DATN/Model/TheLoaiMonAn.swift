@@ -11,7 +11,31 @@ struct TheLoaiMonAn: Decodable {
     
     var idtheloaimonan: String! = UUID().uuidString
     var tentheloaimonan: String = ""
-    var daxoa: Int = -1
+    var daxoa: Int = 0
+    
+    static func fetchAllDataAvailable(completion: @escaping ([TheLoaiMonAn]?, Error?) -> Void) {
+        var datas = [TheLoaiMonAn]()
+        let db = Firestore.firestore()
+
+        db.collection("TheLoaiMonAn").whereField("daxoa", isEqualTo: 0).order(by: "tentheloaimonan").getDocuments { (snapshot, err) in
+            if err != nil {
+                
+                print("Error getting BanAn Data: \(err!.localizedDescription)")
+                completion(nil, err)
+                
+            } else if let snapshot = snapshot, !snapshot.documents.isEmpty {
+                
+                snapshot.documents.forEach({ (document) in
+                    if let data = TheLoaiMonAn(JSON: document.data()) {
+                        datas.append(data)
+                    }
+                })
+                completion(datas, nil)
+            } else {
+                completion(datas, nil)
+            }
+        }
+    }
     
     static func fetchAllData(completion: @escaping ([TheLoaiMonAn]?, Error?) -> Void) {
         var datas = [TheLoaiMonAn]()
@@ -33,6 +57,32 @@ struct TheLoaiMonAn: Decodable {
                 completion(datas, nil)
             } else {
                 completion(datas, nil)
+            }
+        }
+    }
+    
+    static func fetchData(forID id: String, completion: @escaping (TheLoaiMonAn?, Error?) -> Void) {
+        if id == "" {
+            completion(nil,nil)
+            return
+        }
+        var category = TheLoaiMonAn()
+        let db = Firestore.firestore()
+
+        db.collection("TheLoaiMonAn").document(id).getDocument { (snapshot, err) in
+            if err != nil {
+                
+                print("Error getting BanAn Data: \(err!.localizedDescription)")
+                completion(nil, err)
+                
+            } else if let data = snapshot?.data() {
+                
+                if let data = TheLoaiMonAn(JSON: data) {
+                    category = data
+                }
+                completion(category, nil)
+            } else {
+                completion(nil, nil)
             }
         }
     }

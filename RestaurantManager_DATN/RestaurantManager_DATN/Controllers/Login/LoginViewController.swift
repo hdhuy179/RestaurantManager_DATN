@@ -11,8 +11,9 @@ import FirebaseAuth
 
 class LoginViewController: UIViewController {
 
-    @IBOutlet weak var usernameTextField: UITextField!
-    @IBOutlet weak var passwordTextField: UITextField!
+    @IBOutlet weak var usernameTextField: TextField!
+    @IBOutlet weak var passwordTextField: TextField!
+    @IBOutlet weak var btnLogin: RaisedButton!
     @IBOutlet weak var showErrorLabel: UILabel!
     
     override func viewDidLoad() {
@@ -20,8 +21,16 @@ class LoginViewController: UIViewController {
         // Do any additional setup after loading the view.
         
         setupViews()
+        
         usernameTextField.delegate = self
+        usernameTextField.isClearIconButtonEnabled = true
+        usernameTextField.clearButtonMode = .whileEditing
+        
         passwordTextField.delegate = self
+        passwordTextField.isVisibilityIconButtonEnabled = true
+        
+        btnLogin.pulseColor = .white
+        btnLogin.backgroundColor = Color.blue.base
         
     }
     

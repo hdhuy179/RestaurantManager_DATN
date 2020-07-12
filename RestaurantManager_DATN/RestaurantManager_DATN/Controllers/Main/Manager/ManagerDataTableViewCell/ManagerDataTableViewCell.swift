@@ -16,6 +16,9 @@ class ManagerDataTableViewCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
+        
+        lb1.text = ""
+        lb2.text = ""
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {

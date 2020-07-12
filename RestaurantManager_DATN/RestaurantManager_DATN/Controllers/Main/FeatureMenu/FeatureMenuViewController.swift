@@ -23,7 +23,14 @@ final class FeatureMenuViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        
+        fetchData()
+    }
+    
+    func fetchData() {
+        if let data = App.shared.staffInfo {
+            staffNameLabel.text = data.tennhanvien
+            staffPositionLabel.text = data.getPosition()
+        }
     }
     
     private func setupView() {

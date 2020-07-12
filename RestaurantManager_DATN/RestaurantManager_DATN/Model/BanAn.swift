@@ -9,10 +9,36 @@ import ObjectMapper
 
 struct BanAn: Decodable {
     
-    var idbanan: String! = ""
+    var idbanan: String! = UUID().uuidString
     var sobanan: String? = ""
     var soluongghe: Int? = -1
-    var daxoa: Int? = -1
+    var daxoa: Int? = 0
+    
+    var bill: HoaDon?
+    
+    static func fetchAllDataAvailable(completion: @escaping ([BanAn]?, Error?) -> Void) {
+        var banans = [BanAn]()
+        let db = Firestore.firestore()
+
+        db.collection("BanAn").whereField("daxoa", isEqualTo: 0).order(by: "sobanan").getDocuments { (snapshot, err) in
+            if err != nil {
+                
+                print("Error getting BanAn Data: \(err!.localizedDescription)")
+                completion(nil, err)
+                
+            } else if snapshot != nil, !snapshot!.documents.isEmpty {
+                
+                snapshot!.documents.forEach({ (document) in
+                    if let banan = BanAn(JSON: document.data()) {
+                        banans.append(banan)
+                    }
+                })
+                completion(banans, nil)
+            } else {
+                completion(banans, nil)
+            }
+        }
+    }
     
     static func fetchAllData(completion: @escaping ([BanAn]?, Error?) -> Void) {
         var banans = [BanAn]()
@@ -34,6 +60,27 @@ struct BanAn: Decodable {
                 completion(banans, nil)
             } else {
                 completion(banans, nil)
+            }
+        }
+    }
+    
+    static func fetchData(ofID id: String, completion: @escaping (BanAn?, Error?) -> Void) {
+        var banan: BanAn?
+        let db = Firestore.firestore()
+
+        db.collection("BanAn").document(id).getDocument { (snapshot, err) in
+            if err != nil {
+                
+                print("Error getting BanAn Data: \(err!.localizedDescription)")
+                completion(nil, err)
+                
+            } else if snapshot != nil, snapshot?.data() != nil {
+                
+                banan = BanAn(JSON: snapshot!.data()!)
+                completion(banan, nil)
+                
+            } else {
+                completion(banan, nil)
             }
         }
     }

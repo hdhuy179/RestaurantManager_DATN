@@ -10,7 +10,8 @@ target 'RestaurantManager_DATN' do
 	pod 'Firebase/Auth'
 	pod 'Firebase/Firestore'
 	pod 'Firebase/Core'
-  pod 'FirebaseStorage'
+	pod 'FirebaseStorage'
+	pod 'Material'
 	pod 'ObjectMapper'
-  pod 'Kingfisher'
+	pod 'Kingfisher'
 end

@@ -10,15 +10,21 @@ import UIKit
 
 class StorageItemsTableViewCell: UITableViewCell {
 
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        // Initialization code
-    }
-
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
+    @IBOutlet weak var lbStuffName: UILabel!
+    @IBOutlet weak var lbAmount: UILabel!
+    @IBOutlet weak var lbCreatedDate: UILabel!
+    
+    func configView(data: PhieuNhap) {
+        lbStuffName.text = data.maphieu + "\n" + data.tenvatpham
+        lbAmount.text = "\(data.soluong) \(data.donvi)"
+//        lbCreatedDate.text = data.ngaytao?.convertToString(withDateFormat: "dd-MM-yyyy")
+        lbCreatedDate.text = data.creatorStaff?.tennhanvien
     }
     
+    func configView(data: PhieuXuat, of data2: PhieuNhap?) {
+        lbStuffName.text = (data2?.maphieu ?? "") + "\n" + (data2?.tenvatpham ?? "")
+        lbAmount.text = "\(data.soluong) \(data2?.donvi ?? "")"
+//        lbCreatedDate.text = data.ngaytao?.convertToString(withDateFormat: "dd-MM-yyyy")
+        lbCreatedDate.text = data.creatorStaff?.tennhanvien
+    }
 }

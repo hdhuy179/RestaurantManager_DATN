@@ -15,4 +15,6 @@
 @import FirebaseFirestore;
 @import FirebaseStorage;
 @import Kingfisher;
+@import Material;
+
 #endif /* RestaurantManager_DATN_Bridging_Header_h */
